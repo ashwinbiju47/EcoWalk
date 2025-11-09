@@ -1,4 +1,4 @@
-package com.example.EcoWalk
+package com.example.ecowalk
 
 import org.junit.Test
 
