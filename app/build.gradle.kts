@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -73,6 +74,10 @@ dependencies {
 
     // --- Optional UI utilities ---
     implementation("androidx.core:core-splashscreen:1.0.1")
+
+    //--- Firebase ---
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.firebase:firebase-auth")
 
     // --- Testing ---
     testImplementation(libs.junit)
