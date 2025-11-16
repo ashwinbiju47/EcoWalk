@@ -17,6 +17,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // --- Carbon API Key ---
+        buildConfigField("String", "CARBON_API_KEY", "\"${project.findProperty("CARBON_API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -37,6 +40,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -59,25 +63,31 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
 
-
     // --- Room (Local DB) ---
     implementation("androidx.room:room-runtime:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
 
-    // --- DataStore (for Session Manager) ---
+    // --- DataStore ---
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // --- Coroutines ---
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
-    // --- Optional UI utilities ---
+    // --- SplashScreen ---
     implementation("androidx.core:core-splashscreen:1.0.1")
 
-    //--- Firebase ---
+    // --- Firebase ---
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-auth")
+
+    // --- Time and Date ---
+    implementation("com.jakewharton.threetenabp:threetenabp:1.4.6")
+
+    // --- Retrofit (Carbon API Integration) ---
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     // --- Testing ---
     testImplementation(libs.junit)

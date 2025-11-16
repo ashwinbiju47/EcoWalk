@@ -11,17 +11,63 @@ import com.example.ecowalk.data.local.User
 @Composable
 fun HomeScreen(
     user: User,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onStatsClick: () -> Unit
 ) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Welcome, ${user.email}", style = MaterialTheme.typography.titleLarge)
-            Spacer(Modifier.height(20.dp))
-            Button(onClick = onLogout) {
-                Text("Logout")
+
+        Text(
+            text = "Welcome Back",
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = user.email,
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Spacer(Modifier.height(32.dp))
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Text(
+                    "Your Dashboard",
+                    style = MaterialTheme.typography.titleLarge
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                Button(
+                    onClick = onStatsClick,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("View EcoWalk Stats")
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                OutlinedButton(
+                    onClick = onLogout,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Logout")
+                }
             }
         }
     }
