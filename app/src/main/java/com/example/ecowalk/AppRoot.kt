@@ -6,13 +6,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ecowalk.data.local.User
+import com.example.ecowalk.data.local.UserDatabase
+import com.example.ecowalk.data.repository.GreenWalkRepository
+import com.example.ecowalk.network.RetrofitClient
 import com.example.ecowalk.ui.auth.AuthScreen
 import com.example.ecowalk.ui.auth.AuthViewModel
+import com.example.ecowalk.ui.greenwalk.GreenWalkScreen
+import com.example.ecowalk.ui.greenwalk.GreenWalkViewModel
+import com.example.ecowalk.ui.greenwalk.GreenWalkViewModelFactory
 import com.example.ecowalk.ui.home.HomeScreen
 import com.example.ecowalk.ui.splash.SplashScreen
-import com.example.ecowalk.ui.stats.StatsScreen
-import com.example.ecowalk.ui.stats.StatsViewModel
-import com.example.ecowalk.ui.stats.StatsViewModelFactory
 import kotlinx.coroutines.delay
 import com.google.firebase.auth.FirebaseAuth
 
@@ -24,7 +27,7 @@ fun AppRoot() {
     val auth = FirebaseAuth.getInstance()
     var loggedInUser by remember { mutableStateOf<User?>(null) }
     var showSplash by remember { mutableStateOf(true) }
-    var showStats by remember { mutableStateOf(false) }
+    var showGreenWalk by remember { mutableStateOf(false) }
 
 
     LaunchedEffect(Unit) {
@@ -49,24 +52,31 @@ fun AppRoot() {
         if (loggedInUser == null) {
             AuthScreen(onAuthSuccess = { loggedInUser = it })
         } else {
-            if (!showStats) {
+            if (!showGreenWalk) {
                 HomeScreen(
                     user = loggedInUser!!,
                     onLogout = {
                         viewModel.logout()
                         loggedInUser = null
                     },
-                    onStatsClick = { showStats = true }
+                    onGreenWalkClick = { showGreenWalk = true }
                 )
             } else {
-                val context = LocalContext.current
-                val statsVm: StatsViewModel = viewModel(
-                    factory = StatsViewModelFactory(context)
+                val db = UserDatabase.getDatabase(context)
+                val repository = GreenWalkRepository(
+                    dao = db.greenWalkDao(),
+                    osrmApi = RetrofitClient.osrmApi,
+                    overpassApi = RetrofitClient.overpassApi,
+                    nominatimApi = RetrofitClient.nominatimApi
                 )
-
-                StatsScreen(viewModel = statsVm)
+                val greenWalkVm: GreenWalkViewModel = viewModel(
+                    factory = GreenWalkViewModelFactory(repository)
+                )
+                GreenWalkScreen(
+                    viewModel = greenWalkVm,
+                    onBack = { showGreenWalk = false }
+                )
             }
-
         }
     }
 }

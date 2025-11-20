@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Required for API calls to OSRM, Overpass, and Nominatim -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".EcoWalkApp"
         android:allowBackup="true"

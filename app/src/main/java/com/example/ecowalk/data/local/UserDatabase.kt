@@ -10,15 +10,15 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 @Database(
     entities = [
         User::class,
-        StepEntry::class
+        GreenWalkEntry::class
     ],
-    version = 2,
-    exportSchema = true
+    version = 4,
+    exportSchema = false
 )
 abstract class UserDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
-    abstract fun stepDao(): StepDao
+    abstract fun greenWalkDao(): GreenWalkDao
 
     companion object {
         @Volatile private var INSTANCE: UserDatabase? = null
@@ -37,6 +37,36 @@ abstract class UserDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS green_walk_entries (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        date TEXT NOT NULL,
+                        startLocationName TEXT NOT NULL,
+                        endLocationName TEXT NOT NULL,
+                        startLat REAL NOT NULL,
+                        startLng REAL NOT NULL,
+                        endLat REAL NOT NULL,
+                        endLng REAL NOT NULL,
+                        userSteps INTEGER NOT NULL,
+                        totalDistanceKm REAL NOT NULL,
+                        greenExposurePercentage REAL NOT NULL,
+                        routePolyline TEXT NOT NULL
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Drop the old steps table as we're removing the carbon feature
+                db.execSQL("DROP TABLE IF EXISTS steps")
+            }
+        }
+
         fun getDatabase(context: Context): UserDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -44,7 +74,7 @@ abstract class UserDatabase : RoomDatabase() {
                     UserDatabase::class.java,
                     "user_db"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
 
                 INSTANCE = instance

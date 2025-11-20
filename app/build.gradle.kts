@@ -89,6 +89,12 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
+    // --- OkHttp Logging (for debugging API calls) ---
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // --- Google Maps Utils (for polyline decoding) ---
+    implementation("com.google.maps.android:android-maps-utils:3.8.2")
+
     // --- Testing ---
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

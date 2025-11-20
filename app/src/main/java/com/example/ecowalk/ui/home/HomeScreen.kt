@@ -12,7 +12,7 @@ import com.example.ecowalk.data.local.User
 fun HomeScreen(
     user: User,
     onLogout: () -> Unit,
-    onStatsClick: () -> Unit
+    onGreenWalkClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -54,10 +54,10 @@ fun HomeScreen(
                 Spacer(Modifier.height(20.dp))
 
                 Button(
-                    onClick = onStatsClick,
+                    onClick = onGreenWalkClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("View EcoWalk Stats")
+                    Text("Start Green Walk 🌳")
                 }
 
                 Spacer(Modifier.height(16.dp))
