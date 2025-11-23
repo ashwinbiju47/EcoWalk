@@ -9,6 +9,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.NaturePeople
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Search
 import com.example.ecowalk.data.local.GreenWalkEntry
 
 @Composable
@@ -92,20 +98,26 @@ fun InputForm(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                "Enter Walk Details",
-                style = MaterialTheme.typography.titleMedium
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Plan Your Walk",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
             Text(
-                "Enter location names (e.g., 'Central Park, New York' or 'Times Square')",
-                style = MaterialTheme.typography.bodySmall,
+                "Enter start and end points to find the greenest route.",
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
@@ -114,7 +126,9 @@ fun InputForm(
                 onValueChange = { startLocation = it },
                 label = { Text("Start Location") },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("e.g., Central Park, New York") }
+                placeholder = { Text("e.g., Central Park") },
+                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
+                singleLine = true
             )
 
             OutlinedTextField(
@@ -122,7 +136,9 @@ fun InputForm(
                 onValueChange = { endLocation = it },
                 label = { Text("End Location") },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("e.g., Times Square, New York") }
+                placeholder = { Text("e.g., Times Square") },
+                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
+                singleLine = true
             )
 
             Button(
@@ -131,10 +147,12 @@ fun InputForm(
                         onAnalyze(startLocation, endLocation)
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(50.dp),
                 enabled = startLocation.isNotBlank() && endLocation.isNotBlank()
             ) {
-                Text("Analyze Walk")
+                Icon(Icons.Default.NaturePeople, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Analyze Green Route")
             }
         }
     }
@@ -149,16 +167,22 @@ fun AnalyzingView() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        CircularProgressIndicator()
-        Spacer(Modifier.height(16.dp))
+        CircularProgressIndicator(
+            modifier = Modifier.size(64.dp),
+            color = MaterialTheme.colorScheme.primary,
+            strokeWidth = 6.dp
+        )
+        Spacer(Modifier.height(24.dp))
         Text(
-            "Analyzing your route...",
-            style = MaterialTheme.typography.titleMedium
+            "Scouting Green Paths...",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.primary
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Fetching route and checking green spaces",
+            "Analyzing tree density and park coverage along your route.",
             style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -180,48 +204,62 @@ fun ResultsView(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    "Walk Complete! 🌳",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                Icon(
+                    Icons.Default.NaturePeople,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-
                 Spacer(Modifier.height(16.dp))
-
                 Text(
-                    "Distance: ${"%.2f".format(walk.totalDistanceKm)} km",
-                    style = MaterialTheme.typography.titleLarge,
+                    "Walk Analysis Complete",
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
 
                 Spacer(Modifier.height(24.dp))
 
                 Text(
-                    "Green Exposure",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-
-                Text(
                     "${walk.greenExposurePercentage.toInt()}%",
                     style = MaterialTheme.typography.displayLarge,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
-
-                Spacer(Modifier.height(8.dp))
-
                 Text(
-                    "${walk.greenExposurePercentage.toInt()}% of your route was in tree-rich/park zones",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
+                    "Green Exposure",
+                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
+
+                Spacer(Modifier.height(16.dp))
+                Divider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f))
+                Spacer(Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "${"%.2f".format(walk.totalDistanceKm)} km",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            "Distance",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        )
+                    }
+                }
             }
         }
 
@@ -230,12 +268,16 @@ fun ResultsView(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    "Route Details",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text("From: ${walk.startLocationName}")
-                Text("To: ${walk.endLocationName}")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("From: ${walk.startLocationName}", style = MaterialTheme.typography.bodyMedium)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("To: ${walk.endLocationName}", style = MaterialTheme.typography.bodyMedium)
+                }
             }
         }
 
@@ -244,7 +286,9 @@ fun ResultsView(
             onValueChange = { userSteps = it },
             label = { Text("Steps (Optional)") },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Enter step count if you have it") }
+            placeholder = { Text("Enter step count") },
+            leadingIcon = { Icon(Icons.Default.DirectionsWalk, contentDescription = null) },
+            singleLine = true
         )
 
         Button(
@@ -252,15 +296,19 @@ fun ResultsView(
                 val steps = userSteps.toIntOrNull() ?: 0
                 onSave(steps)
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
-            Text("Save Walk")
+            Icon(Icons.Default.Save, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Save to History")
         }
 
         OutlinedButton(
             onClick = onNewWalk,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
+            Icon(Icons.Default.Refresh, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
             Text("Analyze Another Walk")
         }
     }
