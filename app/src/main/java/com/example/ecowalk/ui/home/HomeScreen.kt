@@ -2,7 +2,7 @@ package com.example.ecowalk.ui.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Park
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.*
@@ -53,7 +53,7 @@ fun HomeScreen(
         ) {
             DashboardStatCard(
                 modifier = Modifier.weight(1f),
-                icon = Icons.Default.DirectionsWalk,
+                icon = Icons.AutoMirrored.Filled.DirectionsWalk,
                 value = "12.5",
                 unit = "km",
                 label = "Total Distance"

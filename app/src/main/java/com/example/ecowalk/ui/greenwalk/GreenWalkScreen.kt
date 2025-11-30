@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.NaturePeople
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import com.example.ecowalk.data.local.GreenWalkEntry
 
 @Composable
@@ -239,7 +240,7 @@ fun ResultsView(
                 )
 
                 Spacer(Modifier.height(16.dp))
-                Divider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f))
                 Spacer(Modifier.height(16.dp))
 
                 Row(
@@ -287,7 +288,7 @@ fun ResultsView(
             label = { Text("Steps (Optional)") },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Enter step count") },
-            leadingIcon = { Icon(Icons.Default.DirectionsWalk, contentDescription = null) },
+            leadingIcon = { Icon(Icons.AutoMirrored.Filled.DirectionsWalk, contentDescription = null) },
             singleLine = true
         )
 
