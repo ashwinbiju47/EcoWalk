@@ -18,6 +18,10 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import com.example.ecowalk.data.local.GreenWalkEntry
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+
 @Composable
 fun GreenWalkScreen(
     viewModel: GreenWalkViewModel,
@@ -26,29 +30,55 @@ fun GreenWalkScreen(
     val uiState by viewModel.uiState.collectAsState()
     val walkHistory by viewModel.walkHistory.collectAsState()
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.values.all { it }) {
+            viewModel.startTracking()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(20.dp)
     ) {
-        Text(
-            text = "Green Walk",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Spacer(Modifier.height(20.dp))
+        // Only show header if NOT tracking to save space/distraction
+        if (uiState !is GreenWalkUiState.Tracking) {
+            Text(
+                text = "Green Walk",
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Spacer(Modifier.height(20.dp))
+        }
 
         when (uiState) {
             is GreenWalkUiState.Input -> {
                 InputForm(
                     onAnalyze = { start, end ->
                         viewModel.analyzeWalk(start, end)
+                    },
+                    onStartTracking = {
+                        permissionLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
+                        )
                     }
                 )
             }
 
             is GreenWalkUiState.Analyzing -> {
                 AnalyzingView()
+            }
+
+            is GreenWalkUiState.Tracking -> {
+                val trackingState = uiState as GreenWalkUiState.Tracking
+                TrackingView(
+                    state = trackingState,
+                    onStop = { viewModel.stopTracking() }
+                )
             }
 
             is GreenWalkUiState.Results -> {
@@ -69,7 +99,7 @@ fun GreenWalkScreen(
             }
         }
 
-        // Walk History
+        // Walk History (only in Input mode)
         if (walkHistory.isNotEmpty() && uiState is GreenWalkUiState.Input) {
             Spacer(Modifier.height(32.dp))
             Text(
@@ -92,10 +122,12 @@ fun GreenWalkScreen(
 
 @Composable
 fun InputForm(
-    onAnalyze: (String, String) -> Unit
+    onAnalyze: (String, String) -> Unit,
+    onStartTracking: () -> Unit
 ) {
     var startLocation by remember { mutableStateOf("") }
     var endLocation by remember { mutableStateOf("") }
+    var inputMode by remember { mutableStateOf(0) } // 0 = Manual, 1 = GPS
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -106,54 +138,111 @@ fun InputForm(
             modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "Plan Your Walk",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary
+            // Toggle Tab
+            TabRow(
+                selectedTabIndex = inputMode,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary
+            ) {
+                Tab(
+                    selected = inputMode == 0,
+                    onClick = { inputMode = 0 },
+                    text = { Text("Plan Route") }
+                )
+                Tab(
+                    selected = inputMode == 1,
+                    onClick = { inputMode = 1 },
+                    text = { Text("Live Track") }
                 )
             }
 
-            Text(
-                "Enter start and end points to find the greenest route.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (inputMode == 0) {
+                // Manual Mode
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "Plan Your Walk",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
 
-            OutlinedTextField(
-                value = startLocation,
-                onValueChange = { startLocation = it },
-                label = { Text("Start Location") },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("e.g., Central Park") },
-                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
-                singleLine = true
-            )
+                Text(
+                    "Enter start and end points to find the greenest route.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
-            OutlinedTextField(
-                value = endLocation,
-                onValueChange = { endLocation = it },
-                label = { Text("End Location") },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("e.g., Times Square") },
-                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
-                singleLine = true
-            )
+                OutlinedTextField(
+                    value = startLocation,
+                    onValueChange = { startLocation = it },
+                    label = { Text("Start Location") },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("e.g., Central Park") },
+                    leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
+                    singleLine = true
+                )
 
-            Button(
-                onClick = {
-                    if (startLocation.isNotBlank() && endLocation.isNotBlank()) {
-                        onAnalyze(startLocation, endLocation)
+                OutlinedTextField(
+                    value = endLocation,
+                    onValueChange = { endLocation = it },
+                    label = { Text("End Location") },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("e.g., Times Square") },
+                    leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
+                    singleLine = true
+                )
+
+                Button(
+                    onClick = {
+                        if (startLocation.isNotBlank() && endLocation.isNotBlank()) {
+                            onAnalyze(startLocation, endLocation)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    enabled = startLocation.isNotBlank() && endLocation.isNotBlank()
+                ) {
+                    Icon(Icons.Default.NaturePeople, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Analyze Green Route")
+                }
+            } else {
+                // GPS Mode
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        Icons.Default.LocationOn,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        "Track Your Walk With GPS",
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        "Get real-time stats and green exposure analysis as you walk.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Button(
+                        onClick = onStartTracking,
+                        modifier = Modifier.fillMaxWidth().height(50.dp)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.DirectionsWalk, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Start Tracking")
                     }
-                },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                enabled = startLocation.isNotBlank() && endLocation.isNotBlank()
-            ) {
-                Icon(Icons.Default.NaturePeople, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Analyze Green Route")
+                }
             }
         }
     }
@@ -341,6 +430,81 @@ fun ErrorView(
 
         Button(onClick = onRetry) {
             Text("Try Again")
+        }
+    }
+}
+
+@Composable
+fun TrackingView(
+    state: GreenWalkUiState.Tracking,
+    onStop: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.LocationOn,
+            contentDescription = null,
+            modifier = Modifier
+                .size(80.dp)
+                .padding(bottom = 24.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+
+        Text(
+            text = "Tracking Walk...",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "%.2f".format(state.distanceKm),
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        text = "Kilometers",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(48.dp))
+
+        Button(
+            onClick = onStop,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+        ) {
+            Icon(Icons.Default.Save, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Stop & Save Walk")
         }
     }
 }

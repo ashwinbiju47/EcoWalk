@@ -28,6 +28,7 @@ import com.example.ecowalk.ui.profile.ProfileScreen
 import com.example.ecowalk.ui.splash.SplashScreen
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
+import com.example.ecowalk.utils.LocationClient
 
 @Composable
 fun AppRoot() {
@@ -40,7 +41,10 @@ fun AppRoot() {
     var showSplash by remember { mutableStateOf(true) }
 
     // Initialize GreenWalk ViewModel
+    // Initialize GreenWalk ViewModel
+
     val db = UserDatabase.getDatabase(context)
+    val locationClient = LocationClient(context)
     val repository = GreenWalkRepository(
         dao = db.greenWalkDao(),
         osrmApi = RetrofitClient.osrmApi,
@@ -48,7 +52,7 @@ fun AppRoot() {
         nominatimApi = RetrofitClient.nominatimApi
     )
     val greenWalkVm: GreenWalkViewModel = viewModel(
-        factory = GreenWalkViewModelFactory(repository)
+        factory = GreenWalkViewModelFactory(repository, locationClient)
     )
 
     LaunchedEffect(Unit) {
@@ -104,8 +108,10 @@ fun AppRoot() {
                     modifier = Modifier.padding(innerPadding)
                 ) {
                     composable(BottomNavItem.Home.route) {
+                        val history by greenWalkVm.walkHistory.collectAsState()
                         HomeScreen(
-                            user = loggedInUser!!
+                            user = loggedInUser!!,
+                            walkHistory = history
                         )
                     }
                     composable(BottomNavItem.GreenWalk.route) {

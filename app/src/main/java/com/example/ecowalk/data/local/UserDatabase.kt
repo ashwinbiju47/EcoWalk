@@ -12,7 +12,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         User::class,
         GreenWalkEntry::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class UserDatabase : RoomDatabase() {
@@ -75,6 +75,7 @@ abstract class UserDatabase : RoomDatabase() {
                     "user_db"
                 )
                     .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .fallbackToDestructiveMigration()
                     .build()
 
                 INSTANCE = instance
